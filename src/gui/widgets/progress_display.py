@@ -63,7 +63,8 @@ class ProgressDisplay(ctk.CTkFrame):
         # Progress bar
         self.progress_bar = ctk.CTkProgressBar(
             progress_section,
-            height=20
+            height=20,
+            progress_color=("#4CAF50", "#388E3C")
         )
         self.progress_bar.set(0)
         self.progress_bar.grid(row=1, column=1, sticky="ew", pady=5)
@@ -100,7 +101,7 @@ class ProgressDisplay(ctk.CTkFrame):
             current_section,
             text="",
             font=ctk.CTkFont(size=11),
-            text_color="gray",
+            text_color=("gray40", "gray60"),
             anchor="w"
         )
         self.current_file_label.grid(row=0, column=0, sticky="w")
@@ -110,7 +111,7 @@ class ProgressDisplay(ctk.CTkFrame):
             current_section,
             text="",
             font=ctk.CTkFont(size=11),
-            text_color="gray",
+            text_color=("gray40", "gray60"),
             anchor="e"
         )
         self.time_label.grid(row=0, column=1, sticky="e", padx=(10, 0))
@@ -134,7 +135,7 @@ class ProgressDisplay(ctk.CTkFrame):
             frame,
             text=label,
             font=ctk.CTkFont(size=11),
-            text_color="gray"
+            text_color=("gray40", "gray60")
         )
         label_widget.pack()
         

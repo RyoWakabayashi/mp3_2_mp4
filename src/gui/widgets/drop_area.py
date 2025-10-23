@@ -50,9 +50,9 @@ class DropArea(ctk.CTkFrame):
         # Main drop zone frame
         self.drop_zone = ctk.CTkFrame(
             self,
-            fg_color="transparent",
+            fg_color=("gray90", "gray20"),
             border_width=3,
-            border_color="gray",
+            border_color=("#2196F3", "#1976D2"),
             corner_radius=15
         )
         self.drop_zone.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
@@ -84,7 +84,7 @@ class DropArea(ctk.CTkFrame):
             content_frame,
             text="または、クリックしてファイルを選択",
             font=ctk.CTkFont(size=14),
-            text_color="gray"
+            text_color=("gray40", "gray60")
         )
         self.subtext_label.grid(row=2, column=0, pady=(0, 10))
         
@@ -94,7 +94,10 @@ class DropArea(ctk.CTkFrame):
             text="ファイルを選択",
             command=self._browse_files,
             width=150,
-            height=35
+            height=35,
+            fg_color=("#2196F3", "#1976D2"),
+            hover_color=("#1976D2", "#1565C0"),
+            text_color=("white", "white")
         )
         self.browse_button.grid(row=3, column=0, pady=(5, 20))
         

@@ -93,7 +93,7 @@ class FileListWidget(ctk.CTkScrollableFrame):
             self,
             text="ファイルが追加されていません\n\n上のエリアにMP3ファイルをドロップしてください",
             font=ctk.CTkFont(size=14),
-            text_color="gray",
+            text_color=("gray40", "gray60"),
             justify="center"
         )
         self.empty_label.grid(row=0, column=0, pady=50)
@@ -226,9 +226,9 @@ class FileListWidget(ctk.CTkScrollableFrame):
         # Item frame
         item_frame = ctk.CTkFrame(
             self,
-            fg_color="transparent",
-            border_width=1,
-            border_color="gray",
+            fg_color=("gray95", "gray15"),
+            border_width=2,
+            border_color=("gray70", "gray40"),
             corner_radius=8
         )
         item_frame.grid(row=row, column=0, sticky="ew", pady=5, padx=5)
@@ -258,7 +258,7 @@ class FileListWidget(ctk.CTkScrollableFrame):
             item_frame,
             text=info_text,
             font=ctk.CTkFont(size=11),
-            text_color="gray",
+            text_color=("gray40", "gray60"),
             anchor="w"
         )
         info_label.grid(row=1, column=1, sticky="w", padx=5, pady=(2, 10))
@@ -267,7 +267,8 @@ class FileListWidget(ctk.CTkScrollableFrame):
         progress_bar = ctk.CTkProgressBar(
             item_frame,
             width=150,
-            height=8
+            height=8,
+            progress_color=("#4CAF50", "#388E3C")
         )
         progress_bar.set(0)
         progress_bar.grid(row=0, column=2, padx=10, pady=5, rowspan=2)
@@ -281,7 +282,8 @@ class FileListWidget(ctk.CTkScrollableFrame):
             height=30,
             font=ctk.CTkFont(size=16),
             fg_color="transparent",
-            hover_color="red",
+            hover_color=("#FFCDD2", "#E57373"),
+            text_color=("gray50", "gray70"),
             command=lambda: self.remove_file(item.file_path)
         )
         remove_button.grid(row=0, column=3, padx=(5, 10), pady=5, rowspan=2)
@@ -318,11 +320,11 @@ class FileListWidget(ctk.CTkScrollableFrame):
         
         # Update border color based on status
         if item.status == FileItemStatus.ERROR:
-            widget.configure(border_color="red")
+            widget.configure(border_color=("#F44336", "#D32F2F"))
         elif item.status == FileItemStatus.COMPLETED:
-            widget.configure(border_color="green")
+            widget.configure(border_color=("#4CAF50", "#388E3C"))
         else:
-            widget.configure(border_color="gray")
+            widget.configure(border_color=("gray70", "gray40"))
     
     def _get_status_icon(self, status: FileItemStatus) -> str:
         """Get emoji icon for status."""

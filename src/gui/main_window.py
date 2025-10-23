@@ -130,7 +130,7 @@ class MainWindow:
             self.main_frame,
             text="Drag and drop MP3 files to convert them to MP4 videos",
             font=ctk.CTkFont(size=14),
-            text_color="gray"
+            text_color=("gray40", "gray60")
         )
         self.description_label.grid(row=1, column=0, pady=(0, 20))
     
@@ -194,7 +194,10 @@ class MainWindow:
             font=ctk.CTkFont(size=14, weight="bold"),
             width=150,
             height=40,
-            command=self._start_conversion
+            command=self._start_conversion,
+            fg_color=("#4CAF50", "#388E3C"),
+            hover_color=("#45A049", "#2E7D32"),
+            text_color=("white", "white")
         )
         self.convert_button.grid(row=0, column=0, padx=5)
         self.convert_button.configure(state="disabled")  # Disabled until files are ready
@@ -206,8 +209,9 @@ class MainWindow:
             font=ctk.CTkFont(size=14),
             width=120,
             height=40,
-            fg_color="gray",
-            hover_color="darkgray",
+            fg_color=("#F44336", "#D32F2F"),
+            hover_color=("#E53935", "#C62828"),
+            text_color=("white", "white"),
             command=self._cancel_conversion
         )
         self.cancel_button.grid(row=0, column=1, padx=5)
@@ -222,6 +226,9 @@ class MainWindow:
             height=40,
             fg_color="transparent",
             border_width=2,
+            border_color=("#2196F3", "#1976D2"),
+            text_color=("#2196F3", "#1976D2"),
+            hover_color=("gray90", "gray20"),
             command=self._clear_files
         )
         self.clear_button.grid(row=0, column=2, padx=5)
