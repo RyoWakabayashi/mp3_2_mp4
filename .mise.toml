@@ -1,0 +1,7 @@
+[tools]
+python = "3.11"
+ffmpeg = "6.0"
+
+[env]
+PYTHONPATH = "src"
+DEVELOPMENT = "true"

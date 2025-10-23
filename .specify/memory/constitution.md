@@ -1,50 +1,69 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+SYNC IMPACT REPORT:
+Version: 1.0.0 (Initial constitution)
+Modified principles: N/A (new constitution)
+Added sections: All sections (initial creation)
+Removed sections: N/A
+Templates requiring updates: ✅ updated plan-template.md, spec-template.md, tasks-template.md
+Follow-up TODOs: None
+-->
+
+# MP3 to MP4 Converter Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. User-First Design
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+MUST prioritize non-engineer usability over technical sophistication. Every feature MUST be testable by a non-technical user within 30 seconds of first interaction. GUI interfaces are preferred over command-line for end-user features. Error messages MUST be in plain language with suggested fixes.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+**Rationale**: The primary users are non-engineers who need intuitive, immediate functionality without technical learning curves.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### II. Cross-Platform Compatibility
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+MUST support both Windows (primary deployment) and macOS (development/testing). Core conversion logic MUST be platform-agnostic. Platform-specific code MUST be isolated in adapter layers. Automated testing MUST run on both platforms.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**Rationale**: Windows is the target deployment platform, but macOS is the development environment, requiring seamless cross-platform operation.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### III. Self-Contained Distribution
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+MUST package all dependencies for single-file or single-folder distribution. No separate installation of codecs, frameworks, or system dependencies required. MUST work on fresh Windows installations without additional software.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+**Rationale**: Non-technical users cannot be expected to manage complex dependency installations or system configurations.
+
+### IV. Robust Error Handling
+
+MUST gracefully handle corrupted files, unsupported formats, and insufficient system resources. All operations MUST be recoverable or cleanly abortable. Progress indicators MUST be accurate and responsive during long operations.
+
+**Rationale**: Audio file processing involves many potential failure points that must not crash the application or lose user progress.
+
+### V. Performance Transparency
+
+MUST provide clear progress feedback for operations longer than 2 seconds. Batch operations MUST be resumable after interruption. MUST respect system resources and allow background operation without blocking the UI.
+
+**Rationale**: Audio conversion can be time-consuming; users need clear feedback and control over resource usage.
+
+## Quality Standards
+
+### Testing Requirements
+
+All user-facing features MUST have automated GUI tests simulating real user workflows. Core conversion logic MUST have unit tests with sample audio files. Performance tests MUST verify conversion speed benchmarks on both platforms.
+
+### Documentation Standards
+
+User documentation MUST be visual (screenshots) with step-by-step workflows. Technical documentation MUST include platform-specific build and deployment instructions. All error messages MUST be documented with resolution steps.
+
+## Development Workflow
+
+### Platform Development Cycle
+
+Development and testing MUST occur on macOS. Windows compatibility MUST be verified before each release. Platform-specific issues MUST be addressed within the same development cycle, not deferred.
+
+### Release Process
+
+All releases MUST be tested on clean Windows and macOS systems. Distribution packages MUST be verified on systems without development tools. User acceptance testing MUST include non-technical users.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other development practices. All feature decisions and code reviews MUST verify compliance with user-first design principles. Technical complexity MUST be justified against user value. Platform compatibility cannot be compromised for development convenience.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2025-10-23 | **Last Amended**: 2025-10-23
