@@ -324,7 +324,7 @@ class MainWindow:
         try:
             # Cancel any running conversions
             for job in self._conversion_jobs:
-                if job.is_running():
+                if job.is_active:
                     job.cancel()
             
             # Save window size (check if window still exists)
@@ -462,7 +462,7 @@ class MainWindow:
     def _on_conversion_start(self, job: ConversionJob) -> None:
         """Called when a conversion starts."""
         def update():
-            file_path = job.audio_file.file_path
+            file_path = job.audio_file.path
             self.file_list.update_item_status(file_path, FileItemStatus.CONVERTING)
             self.file_list.set_conversion_job(file_path, job)
         
@@ -471,7 +471,7 @@ class MainWindow:
     def _on_conversion_progress(self, job: ConversionJob, progress: float) -> None:
         """Called when conversion progress updates."""
         def update():
-            file_path = job.audio_file.file_path
+            file_path = job.audio_file.path
             self.file_list.update_item_progress(file_path, progress)
             
             # Update overall progress
@@ -487,7 +487,7 @@ class MainWindow:
     def _on_conversion_complete(self, job: ConversionJob) -> None:
         """Called when a conversion completes successfully."""
         def update():
-            file_path = job.audio_file.file_path
+            file_path = job.audio_file.path
             self.file_list.update_item_status(file_path, FileItemStatus.COMPLETED)
         
         self.root.after(0, update)
@@ -495,7 +495,7 @@ class MainWindow:
     def _on_conversion_error(self, job: ConversionJob, error_message: str) -> None:
         """Called when a conversion fails."""
         def update():
-            file_path = job.audio_file.file_path
+            file_path = job.audio_file.path
             self.file_list.update_item_status(file_path, FileItemStatus.ERROR, error_message)
         
         self.root.after(0, update)
@@ -555,7 +555,7 @@ class MainWindow:
         for item in ready_items:
             # Generate output path using settings service
             output_path = self.settings_service.generate_output_path(
-                item.audio_file.file_path
+                item.audio_file.path
             )
             
             self.conversion_controller.add_conversion(
@@ -728,17 +728,17 @@ class MainWindow:
         """Add conversion job to tracking list."""
         self._conversion_jobs.append(job)
         self._active_conversions += 1
-        self.update_status(f"変換中: {len([j for j in self._conversion_jobs if j.is_running()])}件", "busy")
+        self.update_status(f"変換中: {len([j for j in self._conversion_jobs if j.is_active])}件", "busy")
     
     def remove_conversion_job(self, job: ConversionJob) -> None:
         """Remove conversion job from tracking list."""
         if job in self._conversion_jobs:
             self._conversion_jobs.remove(job)
         
-        if job.is_running():
+        if job.is_active:
             self._active_conversions = max(0, self._active_conversions - 1)
         
-        active_count = len([j for j in self._conversion_jobs if j.is_running()])
+        active_count = len([j for j in self._conversion_jobs if j.is_active])
         if active_count == 0:
             self.update_status("Ready", "info")
         else:

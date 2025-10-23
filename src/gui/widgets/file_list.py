@@ -51,7 +51,7 @@ class FileListItem:
     def progress(self) -> float:
         """Get conversion progress (0-100)."""
         if self.conversion_job:
-            return self.conversion_job.progress
+            return self.conversion_job.progress_percent
         return 0.0
 
 
@@ -355,9 +355,9 @@ class FileListWidget(ctk.CTkScrollableFrame):
         info_parts = [f"{item.size_mb:.1f} MB"]
         
         if item.audio_file:
-            if item.audio_file.duration:
-                duration_min = int(item.audio_file.duration // 60)
-                duration_sec = int(item.audio_file.duration % 60)
+            if item.audio_file.duration_seconds:
+                duration_min = int(item.audio_file.duration_seconds // 60)
+                duration_sec = int(item.audio_file.duration_seconds % 60)
                 info_parts.append(f"{duration_min}:{duration_sec:02d}")
             
             if item.audio_file.bitrate:

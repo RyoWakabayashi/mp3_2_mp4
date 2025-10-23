@@ -128,21 +128,19 @@ class FileValidator:
                 # Other metadata extraction errors - log but don't fail
                 self.logger.warning(f"Could not extract metadata from {path.name}: {e}")
         
-        # Create AudioFile model
-        audio_file = AudioFile(
-            file_path=str(path.absolute()),
-            duration=duration,
-            bitrate=bitrate,
-            sample_rate=sample_rate,
-            channels=channels
-        )
+        # Create AudioFile model using from_path factory method
+        audio_file = AudioFile.from_path(str(path.absolute()))
         
-        # Validate the model
-        if not audio_file.is_valid():
-            raise ConversionError(
-                ErrorCode.INVALID_FILE,
-                f"Audio file validation failed: {path.name}"
-            )
+        # Update with extracted metadata
+        if duration is not None:
+            audio_file.duration_seconds = duration
+        if bitrate is not None:
+            audio_file.bitrate = bitrate
+        if sample_rate is not None:
+            audio_file.sample_rate = sample_rate
+        
+        # Mark as valid after successful validation
+        audio_file.is_valid = True
         
         self.logger.info(f"File validation successful: {path.name}")
         return audio_file

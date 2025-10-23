@@ -1,6 +1,6 @@
 [tools]
 python = "3.11"
-ffmpeg = "6.0"
+ffmpeg = { version = "6.0", os = ["linux", "macos"]}
 
 [env]
 PYTHONPATH = "src"

@@ -67,8 +67,11 @@ class FileValidationController:
             
         except ConversionError as e:
             # Handle known conversion errors
-            error_info = self.error_handler.get_error_info(e)
-            error_message = error_info.user_message
+            error_info = self.error_handler.create_error_info(
+                e.error_code,
+                technical_details=str(e)
+            )
+            error_message = error_info.message
             
             if self.on_validation_error:
                 self.on_validation_error(file_path, error_message)
@@ -77,8 +80,11 @@ class FileValidationController:
             
         except Exception as e:
             # Handle unexpected errors
-            error_info = self.error_handler.get_error_info(e, "file validation")
-            error_message = error_info.user_message
+            error_info = self.error_handler.handle_exception(
+                e,
+                context={"operation": "file validation"}
+            )
+            error_message = error_info.message
             
             if self.on_validation_error:
                 self.on_validation_error(file_path, error_message)

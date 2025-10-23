@@ -69,9 +69,11 @@ class ConversionController:
             Created ConversionJob
         """
         # Create video file spec
+        output_path_obj = Path(output_path)
         video_file = VideoFile(
-            file_path=output_path,
-            background_image=background_image
+            path=output_path,
+            filename=output_path_obj.name,
+            source_audio_file=audio_file
         )
         
         # Create conversion job
@@ -81,12 +83,12 @@ class ConversionController:
         )
         
         # Store job
-        self._jobs[audio_file.file_path] = job
+        self._jobs[audio_file.path] = job
         
         # Add to queue
         self._job_queue.put(job)
         
-        self.logger.info(f"Added conversion job: {Path(audio_file.file_path).name}")
+        self.logger.info(f"Added conversion job: {Path(audio_file.path).name}")
         
         return job
     
@@ -126,7 +128,7 @@ class ConversionController:
         
         job = self._jobs[file_path]
         
-        if job.is_running():
+        if job.is_active:
             job.cancel()
             self.logger.info(f"Cancelled conversion: {Path(file_path).name}")
             return True
@@ -142,15 +144,15 @@ class ConversionController:
         
         # Cancel active jobs
         for job in self._active_jobs:
-            if job.is_running():
+            if job.is_active:
                 job.cancel()
         
         # Clear queue
         while not self._job_queue.empty():
             try:
                 job = self._job_queue.get_nowait()
-                if job.status == ConversionStatus.PENDING:
-                    job.fail("キャンセルされました")
+                if job.status == ConversionStatus.QUEUED:
+                    job.complete_failure("キャンセルされました")
             except:
                 break
     
@@ -168,8 +170,8 @@ class ConversionController:
         
         return {
             'total': len(jobs),
-            'pending': len([j for j in jobs if j.status == ConversionStatus.PENDING]),
-            'running': len([j for j in jobs if j.status == ConversionStatus.RUNNING]),
+            'pending': len([j for j in jobs if j.status == ConversionStatus.QUEUED]),
+            'processing': len([j for j in jobs if j.status == ConversionStatus.PROCESSING]),
             'completed': len([j for j in jobs if j.status == ConversionStatus.COMPLETED]),
             'failed': len([j for j in jobs if j.status == ConversionStatus.FAILED]),
             'cancelled': len([j for j in jobs if j.status == ConversionStatus.CANCELLED])
@@ -181,7 +183,7 @@ class ConversionController:
         
         while self._is_running:
             # Remove completed jobs from active list
-            self._active_jobs = [j for j in self._active_jobs if j.is_running()]
+            self._active_jobs = [j for j in self._active_jobs if j.is_active]
             
             # Start new jobs if slots available
             while len(self._active_jobs) < self.max_concurrent and not self._job_queue.empty():
@@ -217,7 +219,7 @@ class ConversionController:
             self.logger.info(f"Starting conversion: {job.audio_file.filename}")
             
             # Update status
-            job.start()
+            job.start_processing()
             
             # Notify start
             if self.on_job_start:
@@ -231,8 +233,7 @@ class ConversionController:
             
             # Perform conversion
             self.ffmpeg_service.convert_to_mp4(
-                audio_file=job.audio_file,
-                video_file=job.video_file,
+                job=job,
                 progress_callback=progress_callback
             )
             
@@ -242,7 +243,7 @@ class ConversionController:
                 return
             
             # Mark as complete
-            job.complete()
+            job.complete_success()
             
             # Notify completion
             if self.on_job_complete:
@@ -252,21 +253,27 @@ class ConversionController:
             
         except ConversionError as e:
             # Handle known conversion errors
-            error_info = self.error_handler.get_error_info(e)
-            job.fail(error_info.user_message)
+            error_info = self.error_handler.create_error_info(
+                e.error_code,
+                technical_details=str(e)
+            )
+            job.complete_failure(error_info.message)
             
             if self.on_job_error:
-                self.on_job_error(job, error_info.user_message)
+                self.on_job_error(job, error_info.message)
             
-            self.logger.error(f"Conversion failed: {job.audio_file.filename} - {error_info.user_message}")
+            self.logger.error(f"Conversion failed: {job.audio_file.filename} - {error_info.message}")
             
         except Exception as e:
             # Handle unexpected errors
-            error_info = self.error_handler.get_error_info(e, "conversion")
-            job.fail(error_info.user_message)
+            error_info = self.error_handler.handle_exception(
+                e,
+                context={"operation": "conversion"}
+            )
+            job.complete_failure(error_info.message)
             
             if self.on_job_error:
-                self.on_job_error(job, error_info.user_message)
+                self.on_job_error(job, error_info.message)
             
             self.logger.error(f"Unexpected error during conversion: {job.audio_file.filename} - {e}")
     
@@ -288,7 +295,7 @@ class ConversionController:
     def clear_jobs(self) -> None:
         """Clear all completed jobs."""
         # Remove completed/failed/cancelled jobs
-        active_statuses = {ConversionStatus.PENDING, ConversionStatus.RUNNING}
+        active_statuses = {ConversionStatus.QUEUED, ConversionStatus.PROCESSING}
         self._jobs = {
             path: job for path, job in self._jobs.items()
             if job.status in active_statuses
