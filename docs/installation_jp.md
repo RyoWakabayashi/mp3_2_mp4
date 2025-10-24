@@ -24,6 +24,7 @@
 ### 必須要件
 
 #### Windows
+
 - **OS**: Windows 10 (64-bit) 以降
 - **CPU**: Intel Core i3 相当以上
 - **メモリ**: 4GB RAM 以上
@@ -32,6 +33,7 @@
 - **その他**: FFmpeg（インストール手順は後述）
 
 #### macOS
+
 - **OS**: macOS 12 (Monterey) 以降
 - **CPU**: Intel Core i3 または Apple Silicon (M1/M2)
 - **メモリ**: 4GB RAM 以上
@@ -87,14 +89,16 @@
 ### ステップ1: アプリケーションのダウンロード
 
 1. [リリースページ](https://github.com/RyoWakabayashi/mp3_2_mp4/releases)にアクセスします
-2. 最新バージョンの `MP3toMP4Converter-macOS.dmg` をダウンロードします
+2. 最新バージョンの `MP3toMP4Converter-macOS.zip` をダウンロードします
 3. ダウンロードしたファイルを任意のフォルダに保存します
 
-### ステップ2: アプリケーションのインストール
+### ステップ2: ファイルの解凍とインストール
 
-1. ダウンロードした `MP3toMP4Converter-macOS.dmg` をダブルクリックして開きます
-2. 開いたウィンドウで、`MP3toMP4Converter` アイコンを `Applications` フォルダにドラッグ&ドロップします
-3. DMGファイルをアンマウントします（デスクトップのアイコンをゴミ箱にドラッグ）
+1. ダウンロードした `MP3toMP4Converter-macOS.zip` をダブルクリックして解凍します
+2. 解凍されたフォルダ `MP3toMP4Converter` の名前を `MP3toMP4Converter.app` に変更します
+3. `MP3toMP4Converter.app` を「アプリケーション」フォルダにコピーします
+   - Finderで「移動」→「アプリケーション」を選択
+   - `MP3toMP4Converter.app` をドラッグ&ドロップ
 
 ### ステップ3: 初回起動
 
@@ -122,10 +126,10 @@ MP3 to MP4 Converterは動画変換にFFmpegを使用します。FFmpegのイン
 
 ### 簡易手順
 
-#### Windows（Chocolateyを使用）
+#### Windows（wingetを使用）
 
 ```powershell
-choco install ffmpeg
+winget install Gyan.FFmpeg
 ```
 
 #### macOS（Homebrewを使用）
@@ -155,11 +159,13 @@ brew install ffmpeg
 または、ターミナル/コマンドプロンプトで以下を実行:
 
 #### Windows
+
 ```cmd
 ffmpeg -version
 ```
 
 #### macOS
+
 ```bash
 ffmpeg -version
 ```
@@ -211,6 +217,7 @@ FFmpegのバージョン情報が表示されれば正常にインストール�
 ### アプリケーションが起動しない
 
 #### Windows
+
 - **症状**: ダブルクリックしても何も起こらない
 - **対処法**:
   1. Windows Defenderやウイルス対策ソフトがブロックしていないか確認
@@ -218,6 +225,7 @@ FFmpegのバージョン情報が表示されれば正常にインストール�
   3. Visual C++ Redistributableがインストールされているか確認
 
 #### macOS
+
 - **症状**: 「開発元を確認できません」エラー
 - **対処法**:
   1. 右クリック→「開く」で起動を試す
@@ -256,5 +264,6 @@ FFmpegのバージョン情報が表示されれば正常にインストール�
 ---
 
 **関連ドキュメント**:
+
 - [ユーザーマニュアル](manual_jp.md)
 - [FFmpegセットアップガイド](ffmpeg_setup_jp.md)
