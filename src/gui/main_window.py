@@ -23,6 +23,13 @@ from .widgets.file_list import FileListWidget, FileItemStatus
 from .widgets.progress_display import ProgressDisplay
 from .dialogs.settings_dialog import SettingsDialog
 
+# Try to import tkinterdnd2 for drag and drop support
+try:
+    from tkinterdnd2 import TkinterDnD
+    TKDND_AVAILABLE = True
+except ImportError:
+    TKDND_AVAILABLE = False
+
 
 class MainWindow:
     """Main application window."""
@@ -55,7 +62,16 @@ class MainWindow:
         ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
         
         # Create main window
-        self.root = ctk.CTk()
+        if TKDND_AVAILABLE:
+            # Use TkinterDnD.Tk as base for drag and drop support
+            self.root = TkinterDnD.Tk()
+            # Apply customtkinter styling
+            ctk.deactivate_automatic_dpi_awareness()
+            self.logger.info("Window created with drag and drop support (TkinterDnD)")
+        else:
+            self.root = ctk.CTk()
+            self.logger.info("Window created without drag and drop support")
+            
         self.root.title("MP3 to MP4 Converter")
         
         # Set window size from settings

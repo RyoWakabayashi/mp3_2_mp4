@@ -2,13 +2,20 @@
 Drag and Drop Area Widget - Accept MP3 files via drag and drop.
 """
 
-import tkinter as tk
 from tkinter import filedialog
 import customtkinter as ctk
 from typing import Callable, List, Optional
 from pathlib import Path
 
 from ...utils.logger import get_logger
+
+# Try to import tkinterdnd2
+try:
+    from tkinterdnd2 import DND_FILES
+    HAS_DND_SUPPORT = True
+except ImportError:
+    HAS_DND_SUPPORT = False
+    DND_FILES = None
 
 
 class DropArea(ctk.CTkFrame):
@@ -119,7 +126,7 @@ class DropArea(ctk.CTkFrame):
         
         for widget in widgets:
             # Register as drop target
-            widget.drop_target_register(tk.DND_FILES)
+            widget.drop_target_register(DND_FILES)
             
             # Bind drag events
             widget.dnd_bind('<<DragEnter>>', self._on_drag_enter)
@@ -377,11 +384,10 @@ class SimpleDropArea(ctk.CTkFrame):
 
 
 # Determine which implementation to use
-try:
-    from tkinterdnd2 import DND_FILES, TkinterDnD
+if HAS_DND_SUPPORT:
     DROP_AREA_CLASS = DropArea
-    HAS_DND_SUPPORT = True
-except ImportError:
+    get_logger("DropArea").info("tkinterdnd2 available, drag and drop support enabled")
+else:
     DROP_AREA_CLASS = SimpleDropArea
-    HAS_DND_SUPPORT = False
     get_logger("DropArea").info("tkinterdnd2 not available, using simplified file browser mode")
+
