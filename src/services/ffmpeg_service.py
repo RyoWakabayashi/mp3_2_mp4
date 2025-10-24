@@ -21,6 +21,7 @@ class FFmpegService:
     
     def __init__(self):
         self._ffmpeg_path = self._find_ffmpeg()
+        self._video_encoder = self._detect_video_encoder()
     
     def _find_ffmpeg(self) -> Optional[str]:
         """Find FFmpeg executable in system PATH."""
@@ -43,6 +44,40 @@ class FFmpegService:
                 continue
         
         return None
+    
+    def _detect_video_encoder(self) -> str:
+        """Detect the best available video encoder."""
+        if not self._ffmpeg_path:
+            return "libx264"  # Default fallback
+        
+        try:
+            # Get list of available encoders
+            result = subprocess.run(
+                [self._ffmpeg_path, "-encoders"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode == 0:
+                encoders = result.stdout.lower()
+                
+                # Priority order: hardware accelerated encoders first, then software
+                if "h264_videotoolbox" in encoders:
+                    return "h264_videotoolbox"  # macOS hardware acceleration
+                elif "h264_qsv" in encoders:
+                    return "h264_qsv"  # Intel Quick Sync
+                elif "h264_nvenc" in encoders:
+                    return "h264_nvenc"  # NVIDIA hardware acceleration
+                elif "libx264" in encoders:
+                    return "libx264"  # Standard software encoder
+                elif "mpeg4" in encoders:
+                    return "mpeg4"  # Fallback
+                
+        except Exception:
+            pass
+        
+        return "libx264"  # Default fallback
     
     def is_available(self) -> bool:
         """Check if FFmpeg is available on the system."""
@@ -124,6 +159,7 @@ class FFmpegService:
             return
         
         def conversion_thread():
+            stderr_lines = []
             try:
                 input_path = job.audio_file.path
                 output_path = job.video_file.path
@@ -146,22 +182,54 @@ class FFmpegService:
                 )
                 
                 # Combine audio and video
+                # Use detected video encoder
+                output_kwargs = {
+                    'vcodec': self._video_encoder,
+                    'acodec': 'aac',
+                    'shortest': None,
+                    'y': None  # Overwrite output file
+                }
+                
+                # Add pixel format for software encoders
+                if self._video_encoder in ['libx264', 'mpeg4']:
+                    output_kwargs['pix_fmt'] = 'yuv420p'
+                
                 output = ffmpeg.output(
                     video_stream,
                     input_stream,
                     output_path,
-                    vcodec='libx264',
-                    acodec='aac',
-                    pix_fmt='yuv420p',
-                    shortest=None,
-                    y=None  # Overwrite output file
+                    **output_kwargs
                 )
                 
                 # Run conversion with progress monitoring
-                process = ffmpeg.run_async(output, pipe_stderr=True)
+                process = ffmpeg.run_async(output, pipe_stderr=True, pipe_stdout=True)
                 
-                # Monitor progress
-                self._monitor_progress(process, job.audio_file.duration_seconds, progress_callback)
+                # Monitor progress and capture stderr
+                if process.stderr:
+                    while True:
+                        line = process.stderr.readline()
+                        if not line:
+                            break
+                        line_str = line.decode('utf-8', errors='ignore')
+                        stderr_lines.append(line_str)
+                        
+                        # Parse progress
+                        if progress_callback and 'time=' in line_str:
+                            try:
+                                time_str = line_str.split('time=')[1].split()[0]
+                                time_parts = time_str.split(':')
+                                if len(time_parts) == 3:
+                                    hours = float(time_parts[0])
+                                    minutes = float(time_parts[1])
+                                    seconds = float(time_parts[2])
+                                    current_time = hours * 3600 + minutes * 60 + seconds
+                                    
+                                    if job.audio_file.duration_seconds > 0:
+                                        progress = (current_time / job.audio_file.duration_seconds) * 100
+                                        progress = max(0.0, min(100.0, progress))
+                                        progress_callback(progress)
+                            except (ValueError, IndexError):
+                                pass
                 
                 # Wait for completion
                 process.wait()
@@ -172,13 +240,17 @@ class FFmpegService:
                     if completion_callback:
                         completion_callback(True, None)
                 else:
-                    stderr_output = process.stderr.read().decode() if process.stderr else "Unknown error"
+                    stderr_output = ''.join(stderr_lines[-20:]) if stderr_lines else "No error output"
                     if completion_callback:
-                        completion_callback(False, f"FFmpeg conversion failed: {stderr_output}")
+                        completion_callback(False, f"FFmpeg conversion failed (code {process.returncode}): {stderr_output}")
                 
             except Exception as e:
+                stderr_output = ''.join(stderr_lines[-10:]) if stderr_lines else ""
+                error_msg = f"Conversion error: {str(e)}"
+                if stderr_output:
+                    error_msg += f"\nFFmpeg output: {stderr_output}"
                 if completion_callback:
-                    completion_callback(False, f"Conversion error: {str(e)}")
+                    completion_callback(False, error_msg)
         
         # Start conversion in separate thread
         thread = threading.Thread(target=conversion_thread)

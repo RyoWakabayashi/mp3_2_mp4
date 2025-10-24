@@ -231,25 +231,50 @@ class ConversionController:
                 if self.on_job_progress:
                     self.on_job_progress(job, progress)
             
+            # Completion callback
+            conversion_complete = threading.Event()
+            conversion_success = [False]
+            conversion_error = [None]
+            
+            def completion_callback(success: bool, error_message: Optional[str]):
+                conversion_success[0] = success
+                conversion_error[0] = error_message
+                conversion_complete.set()
+            
             # Perform conversion
             self.ffmpeg_service.convert_to_mp4(
                 job=job,
-                progress_callback=progress_callback
+                progress_callback=progress_callback,
+                completion_callback=completion_callback
             )
+            
+            # Wait for conversion to complete
+            conversion_complete.wait()
             
             # Check if cancelled during conversion
             if job.status == ConversionStatus.CANCELLED:
                 self.logger.info(f"Conversion cancelled: {job.audio_file.filename}")
                 return
             
-            # Mark as complete
-            job.complete_success()
-            
-            # Notify completion
-            if self.on_job_complete:
-                self.on_job_complete(job)
-            
-            self.logger.info(f"Conversion complete: {job.audio_file.filename}")
+            # Check conversion result
+            if conversion_success[0]:
+                # Mark as complete
+                job.complete_success()
+                
+                # Notify completion
+                if self.on_job_complete:
+                    self.on_job_complete(job)
+                
+                self.logger.info(f"Conversion complete: {job.audio_file.filename}")
+            else:
+                # Conversion failed
+                error_msg = conversion_error[0] or "Unknown error"
+                job.complete_failure(error_msg)
+                
+                if self.on_job_error:
+                    self.on_job_error(job, error_msg)
+                
+                self.logger.error(f"Conversion failed: {job.audio_file.filename} - {error_msg}")
             
         except ConversionError as e:
             # Handle known conversion errors
